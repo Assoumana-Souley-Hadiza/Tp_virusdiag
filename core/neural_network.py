@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 from .model import BaseModel
 
-
 class AttentionBlock(nn.Module):
     """
     Bloc d’attention feature-wise pour données tabulaires :
@@ -21,7 +20,6 @@ class AttentionBlock(nn.Module):
     def forward(self, x):
         attn_scores = self.attention(x)
         return x * attn_scores  # pondération élément par élément
-
 
 class MedicalTabularModel(BaseModel):
     """

@@ -7,10 +7,12 @@ from torch.utils.data import DataLoader
 import numpy as np
 
 # Imports depuis les packages du projet
-from core import get_model, get_optimizer
+#from core import get_optimizer
 from core.losses import get_loss
 from pipeline import train, evaluate
 from utils import load_and_preprocess
+from core.neural_network import MedicalTabularModel
+
 
 # -------------------------------
 # CONFIGURATION
@@ -21,7 +23,6 @@ TARGET_COL = "label_infected"
 BATCH_SIZE = 8
 EPOCHS = 20
 LR = 0.001
-MODEL_TYPE = "logistic"  # "logistic" ou "nn"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 LOSS_TYPE = "bce"  # type de loss modulaire
 
@@ -54,15 +55,15 @@ test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
 # MODEL & OPTIMIZER
 # -------------------------------
 input_dim = len(FEATURE_COLS)
-model = get_model(MODEL_TYPE, input_dim)
-optimizer = get_optimizer(model, lr=LR, optimizer_type="adam")
-criterion = get_loss(LOSS_TYPE)  # <- utilisation de la loss modulaire
+model = MedicalTabularModel(input_dim).to(DEVICE)  # instanciation directe
+#optimizer = get_optimizer(model, lr=LR, optimizer_type="adam")
+criterion = get_loss(LOSS_TYPE)  # utilisation de la loss modulaire
 
 # -------------------------------
 # TRAINING
 # -------------------------------
 print("Début de l'entraînement...\n")
-train(model, train_loader, optimizer, epochs=EPOCHS, device=DEVICE, loss_type=LOSS_TYPE)
+train(model, train_loader, epochs=EPOCHS, device=DEVICE, loss_type=LOSS_TYPE)
 
 # -------------------------------
 # EVALUATION
@@ -77,7 +78,7 @@ patient_example = np.array([45, 6.2], dtype=np.float32)  # exemple patient
 model.eval()
 with torch.no_grad():
     x_tensor = torch.tensor(patient_example).unsqueeze(0).to(DEVICE)
-    proba = model(x_tensor).item()
+    proba = model.predict(x_tensor).item()  # méthode predict() du BaseModel
     diagnosis = "Infecté" if proba > 0.5 else "Sain"
 
 print("\nExemple patient :", patient_example)
